@@ -13,7 +13,6 @@ class TaskCard extends StatelessWidget {
   });
 
   // Couleur selon le statut
-
   Color _getStatusColor() {
     switch (task.status) {
       case TaskStatus.todo:
@@ -65,7 +64,6 @@ class TaskCard extends StatelessWidget {
   }
 
   // Texte selon la priorité
-
   String _getPriorityText() {
     switch (task.priority) {
       case TaskPriority.low:
