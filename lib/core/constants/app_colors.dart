@@ -84,4 +84,16 @@ class AppColors {
 
   /// Termine
   static const Color statusDone = Color(0xFF22C55E);
+
+  // ============== Couleurs des projets ==============
+  static const List<int> projectColors = [
+    0xFF0293ED, // Bleu
+    0xFF22C55E, // Vert
+    0xFFEF4444, // Rouge
+    0xFFF59E0B, // Orange
+    0xFF8B5CF6, // Violet
+    0xFFEC4899, // Rose
+    0xFF14B8A6, // Turquoise
+    0xFF64748B, // Gris
+  ];
 }
