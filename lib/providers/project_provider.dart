@@ -17,6 +17,8 @@ class ProjectProvider extends ChangeNotifier {
 
   int get projectCount => _projects.length;
 
+  bool get isLoading => _isLoading;
+
 // Méthodes CRUD
   Future<void> loadProjects(String userId) async {
     _isLoading = true;
