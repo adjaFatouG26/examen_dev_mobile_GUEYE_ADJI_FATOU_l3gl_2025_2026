@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sunu_task/core/constants/app_colors.dart';
-import 'package:sunu_task/core/constants/app_strings.dart';
 import 'package:sunu_task/providers/auth_provider.dart';
 import 'package:sunu_task/providers/project_provider.dart';
 import 'package:sunu_task/providers/task_provider.dart';
@@ -80,7 +79,11 @@ class _HomeScreenState extends State<HomeScreen> {
           DashboardTab(authProvider: _authProvider, projectProvider: _projectProvider, taskProvider: _taskProvider),
           ProjectsTab(authProvider: _authProvider, projectProvider: _projectProvider),
           TasksTab(projectProvider: _projectProvider, taskProvider: _taskProvider),
-          ProfileTab(authProvider: _authProvider),
+          ProfileTab(
+            authProvider: _authProvider,
+            projectProvider: _projectProvider,
+            taskProvider: _taskProvider,
+          ),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -122,10 +125,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    const CircleAvatar(
+                    CircleAvatar(
                       radius: 30,
                       backgroundColor: Colors.white,
-                      child: Icon(Icons.person, size: 35, color: AppColors.primary),
+                      child: Text(
+                        user?.name.isNotEmpty == true
+                            ? user!.name[0].toUpperCase()
+                            : '?',
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(user?.name ?? 'Utilisateur',
