@@ -7,6 +7,10 @@ import 'package:sunu_task/providers/project_provider.dart';
 import 'package:sunu_task/providers/task_provider.dart';
 import 'package:sunu_task/screens/projects/project_form_screen.dart';
 import 'package:sunu_task/widgets/cards/task_card.dart';
+import 'package:sunu_task/screens/tasks/task_form_screen.dart';
+import 'package:sunu_task/screens/tasks/task_detail_screen.dart';
+
+
 
 class ProjectDetailScreen extends StatefulWidget {
   final Project project;
@@ -208,7 +212,16 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                     return TaskCard(
                       task: tasks[index],
                       onTap: () {
-                        // sera complété avec TaskDetailScreen
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => TaskDetailScreen(
+                              task: tasks[index],
+                              taskProvider: widget.taskProvider,
+                              authProvider: widget.authProvider,
+                            ),
+                          ),
+                        );
                       },
                     );
                   },
@@ -226,7 +239,16 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
         backgroundColor: Color(widget.project.color),
         foregroundColor: Colors.white,
         onPressed: () {
-          // sera complété avec TaskFormScreen
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => TaskFormScreen(
+                projectId: widget.project.id,
+                taskProvider: widget.taskProvider,
+                authProvider: widget.authProvider,
+              ),
+            ),
+          );
         },
         child: const Icon(Icons.add),
       ),
