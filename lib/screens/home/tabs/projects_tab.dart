@@ -4,6 +4,9 @@ import 'package:sunu_task/core/constants/app_colors.dart';
 import 'package:sunu_task/providers/auth_provider.dart';
 import 'package:sunu_task/providers/project_provider.dart';
 import 'package:sunu_task/widgets/cards/project_card.dart';
+import 'package:sunu_task/providers/task_provider.dart';
+import 'package:sunu_task/screens/projects/project_detail_screen.dart';
+import 'package:sunu_task/screens/projects/project_form_screen.dart';
 
 class ProjectsTab extends StatelessWidget {
   final AuthProvider authProvider;
@@ -64,9 +67,30 @@ class ProjectsTab extends StatelessWidget {
               project: project,
               taskCount: 0,
               onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ProjectDetailScreen(
+                      project: project,
+                      projectProvider: projectProvider,
+                      taskProvider: TaskProvider(),
+                      authProvider: authProvider,
+                    ),
+                  ),
+                );
 
               },
               onEdit: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ProjectFormScreen(
+                        project: project,
+                        projectProvider: projectProvider,
+                        authProvider: authProvider,
+                      ),
+                    ),
+                );
 
               },
               onDelete: () async {
