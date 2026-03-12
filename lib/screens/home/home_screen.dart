@@ -8,6 +8,7 @@ import 'package:sunu_task/screens/home/tabs/dashboard_tab.dart';
 import 'package:sunu_task/screens/home/tabs/projects_tab.dart';
 import 'package:sunu_task/screens/home/tabs/tasks_tab.dart';
 import 'package:sunu_task/screens/home/tabs/profile_tab.dart';
+import 'package:sunu_task/screens/projects/project_form_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -99,11 +100,21 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
         ],
       ),
-      floatingActionButton: _currentIndex == 1 || _currentIndex == 2
+      floatingActionButton: _currentIndex == 0 || _currentIndex == 1
           ? FloatingActionButton(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
-        onPressed: () {},
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ProjectFormScreen(
+                projectProvider: _projectProvider,
+                authProvider: _authProvider,
+              ),
+            ),
+          );
+        },
         child: const Icon(Icons.add),
       )
           : null,
