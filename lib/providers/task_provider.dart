@@ -10,6 +10,7 @@ class TaskProvider extends ChangeNotifier {
   TaskStatus? _statusFilter;
   TaskPriority? _priorityFilter;
   bool _isLoading = false;
+  bool get isLoading => _isLoading;
 
 // Getters
   // Retourne les tâches filtrées et triées
