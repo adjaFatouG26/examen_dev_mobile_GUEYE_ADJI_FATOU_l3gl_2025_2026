@@ -1,11 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:sunu_task/core/constants/app_colors.dart';
-import 'package:sunu_task/providers/auth_provider.dart';
-import 'package:sunu_task/screens/home/home_screen.dart';
-import 'package:sunu_task/screens/auth/register_screen.dart';
-import 'package:sunu_task/widgets/common/custom_button.dart';
-import 'package:sunu_task/widgets/common/custom_text_field.dart';
+import 'package:flutter/material.dart'; // ici on a importe les composants graphiques
+import 'package:sunu_task/core/constants/app_colors.dart'; //----ls couleurs---
+import 'package:sunu_task/providers/auth_provider.dart'; // ---- la logique de connecxion
+import 'package:sunu_task/screens/home/home_screen.dart'; // ------Page qui vient aprés la page de connexionn----
+import 'package:sunu_task/screens/auth/register_screen.dart'; // ------Page d'inscription----
+import 'package:sunu_task/widgets/common/custom_button.dart';// on personnalise un button
+import 'package:sunu_task/widgets/common/custom_text_field.dart'; //---- On a le champs de texte
 
+// ici on definit la page
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -13,24 +14,25 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
+// ----- logique qui se passe en arriére plan
 class _LoginScreenState extends State<LoginScreen> {
 
-  //  Clé du formulaire
+  //  Clé pour valider si le formulaire est bien rempli
 
   final _formKey = GlobalKey<FormState>();
 
-  //  Controllers
+  //  Controllers pr lire que l'utilisateur écrit
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  //  Provider
+  // Provider permet l'accés au service d'authentification
   final _authProvider = AuthProvider();
 
   @override
   void dispose() {
     //  Libère les controllers
-    _emailController.dispose();
-    _passwordController.dispose();
+    _emailController.dispose();  // on éteint les controlers pr libérer de memoire quand on quitt le page
+    _passwordController.dispose(); ///// -----
     super.dispose();
   }
 
@@ -38,7 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
     // Valider le formulaire
     if (!_formKey.currentState!.validate()) return;
 
-    //  Appeler login()
+    //  Appeler login() ici on envoie le email et le mot de passe au serveur
     final success = await _authProvider.login(
     _emailController.text.trim(), // email
     _passwordController.text.trim(), // password
@@ -46,17 +48,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (!mounted) return;
 
-    // Si succès → HomeScreen
+    // Si la connexion marche
     if (success) {
-      Navigator.pushAndRemoveUntil(
+      Navigator.pushAndRemoveUntil( // on va vers l'ecran d'acceuil appelé le HomeScreen
         context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
+        MaterialPageRoute(
+          builder: (_) => HomeScreen(authProvider: _authProvider),
+        ),
             (route) => false,
       );
     } else {
-      //  Si erreur → SnackBar
+      //  Si erreur SnackBar
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        SnackBar( // là elle affiche un petit mess d'erreur en bas de l'ecran pr prévenir l'utilisateur
           content: Text(_authProvider.error ?? 'Erreur de connexion'),
           backgroundColor: AppColors.error,
         ),
