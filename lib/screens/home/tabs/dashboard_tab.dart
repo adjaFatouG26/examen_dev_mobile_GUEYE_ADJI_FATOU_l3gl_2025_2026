@@ -6,6 +6,7 @@ import 'package:sunu_task/providers/auth_provider.dart';
 import 'package:sunu_task/providers/project_provider.dart';
 import 'package:sunu_task/providers/task_provider.dart';
 import 'package:sunu_task/widgets/cards/project_card.dart';
+import 'package:sunu_task/screens/projects/project_detail_screen.dart';
 
 class DashboardTab extends StatelessWidget {
   final AuthProvider authProvider;
@@ -141,9 +142,25 @@ class DashboardTab extends StatelessWidget {
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: projects.length > 3 ? 3 : projects.length,
                   itemBuilder: (context, index) {
+                    final project = projects[index];
                     return ProjectCard(
-                      project: projects[index],
-                      taskCount: 0,
+                      project: project,
+                      taskCount: taskProvider.tasks
+                          .where((t) => t.projectId == project.id)
+                          .length,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ProjectDetailScreen(
+                              project: project,
+                              projectProvider: projectProvider,
+                              taskProvider: taskProvider,
+                              authProvider: authProvider,
+                            ),
+                          ),
+                        );
+                      },
                     );
                   },
                 ),
