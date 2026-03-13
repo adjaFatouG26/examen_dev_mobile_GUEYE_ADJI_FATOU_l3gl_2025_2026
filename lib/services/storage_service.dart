@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:sunu_task/models/User.dart';
 import 'package:sunu_task/models/Project.dart';
 import 'package:sunu_task/models/Task.dart';
+import 'package:sunu_task/models/Comment.dart';
 
 /**
  * Pattern Singleton:
@@ -106,6 +107,7 @@ class StorageService {
   // ======== Projets =========
 
   // Récupérer tous les projets
+
   List<Project> getProjects(String userId) {
     final data = _prefs.getString(_keyProjects);
     if (data == null) return [];
@@ -131,7 +133,8 @@ class StorageService {
         _keyProjects, jsonEncode(projects.map((p) => p.toMap()).toList()));
   }
 
-  // Supprimer un projet
+  // Pr Supprimer un projet on utilise :
+
   Future<void> deleteProject(String projectId) async {
     final data = _prefs.getString(_keyProjects);
     if (data == null) return;
@@ -144,9 +147,10 @@ class StorageService {
         _keyProjects, jsonEncode(projects.map((p) => p.toMap()).toList()));
   }
 
-  // ======== Tâches =========
+  // Ici On a ls Tâches
 
-  // Récupérer les tâches d'un projet
+  // On veut récupérer ls tâches d'un projet on utilise :
+
   List<Task> getTasks(String projectId) {
     final data = _prefs.getString(_keyTasks);
     if (data == null) return [];
@@ -157,7 +161,7 @@ class StorageService {
         .toList();
   }
 
-  // Sauvegarder une tâche
+  // Ici On Sauvegarde une tâche
   Future<void> saveTask(Task task) async {
     final data = _prefs.getString(_keyTasks);
     final List<dynamic> list = data != null ? jsonDecode(data) : [];
@@ -172,7 +176,8 @@ class StorageService {
         _keyTasks, jsonEncode(tasks.map((t) => t.toMap()).toList()));
   }
 
-  // Supp une tâche
+  // On Supprime une tâche
+
   Future<void> deleteTask(String taskId) async {
     final data = _prefs.getString(_keyTasks);
     if (data == null) return;
@@ -197,5 +202,64 @@ class StorageService {
         .toList();
     await _prefs.setString(
         _keyTasks, jsonEncode(tasks.map((t) => t.toMap()).toList()));
+  }
+  //  On a les Commentaires
+
+  static const String _keyComments = 'comments';
+
+  // On  Récupére les commentaires d'une tâche
+
+  List<Comment> getCommentsByTaskId(String taskId) {
+    final data = _prefs.getString(_keyComments);
+    if (data == null) return [];
+    final List<dynamic> list = jsonDecode(data);
+    return list
+        .map((e) => Comment.fromMap(e))
+        .where((c) => c.taskId == taskId)
+        .toList();
+  }
+
+  // Pour Sauvegarder un commentaire
+
+  Future<void> saveComment(Comment comment) async {
+    final data = _prefs.getString(_keyComments);
+    final List<dynamic> list = data != null ? jsonDecode(data) : [];
+    final comments = list.map((e) => Comment.fromMap(e)).toList();
+    final index = comments.indexWhere((c) => c.id == comment.id);
+    if (index >= 0) {
+      comments[index] = comment;
+    } else {
+      comments.add(comment);
+    }
+    await _prefs.setString(
+        _keyComments, jsonEncode(comments.map((c) => c.toMap()).toList()));
+  }
+
+  // Pour Supprimer un commentaire
+  
+  Future<void> deleteComment(String commentId) async {
+    final data = _prefs.getString(_keyComments);
+    if (data == null) return;
+    final List<dynamic> list = jsonDecode(data);
+    final comments = list
+        .map((e) => Comment.fromMap(e))
+        .where((c) => c.id != commentId)
+        .toList();
+    await _prefs.setString(
+        _keyComments, jsonEncode(comments.map((c) => c.toMap()).toList()));
+  }
+
+  // Cette section nous permet de supprimer ts ls commentaires d'une tâche
+
+  Future<void> deleteCommentsByTaskId(String taskId) async {
+    final data = _prefs.getString(_keyComments);
+    if (data == null) return;
+    final List<dynamic> list = jsonDecode(data);
+    final comments = list
+        .map((e) => Comment.fromMap(e))
+        .where((c) => c.taskId != taskId)
+        .toList();
+    await _prefs.setString(
+        _keyComments, jsonEncode(comments.map((c) => c.toMap()).toList()));
   }
 }
