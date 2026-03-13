@@ -7,15 +7,19 @@ import 'package:sunu_task/widgets/cards/project_card.dart';
 import 'package:sunu_task/providers/task_provider.dart';
 import 'package:sunu_task/screens/projects/project_detail_screen.dart';
 import 'package:sunu_task/screens/projects/project_form_screen.dart';
-
+import 'package:sunu_task/providers/task_provider.dart';
 class ProjectsTab extends StatelessWidget {
   final AuthProvider authProvider;
   final ProjectProvider projectProvider;
+  final TaskProvider taskProvider;
+
 
   const ProjectsTab({
     super.key,
     required this.authProvider,
     required this.projectProvider,
+    required this.taskProvider,
+
   });
 
   @override
@@ -65,7 +69,9 @@ class ProjectsTab extends StatelessWidget {
             final project = projects[index];
             return ProjectCard(
               project: project,
-              taskCount: 0,
+              taskCount: taskProvider.tasks
+                  .where((t) => t.projectId == project.id)
+                  .length,
               onTap: () {
                 Navigator.push(
                   context,
