@@ -11,7 +11,12 @@ import 'package:sunu_task/screens/home/tabs/profile_tab.dart';
 import 'package:sunu_task/screens/projects/project_form_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final AuthProvider authProvider;
+
+  const HomeScreen({
+    super.key,
+    required this.authProvider,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -23,7 +28,6 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
   // Providers
-  final _authProvider = AuthProvider();
   final _projectProvider = ProjectProvider();
   final _taskProvider = TaskProvider();
 
@@ -35,17 +39,26 @@ class _HomeScreenState extends State<HomeScreen> {
     'Profil',
   ];
 
+  // Raccourci vers authProvider
+  AuthProvider get _authProvider => widget.authProvider;
+
   @override
   void initState() {
     super.initState();
-    _authProvider.init();
-    _loadData();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      _loadData();
+    });
+  
   }
 
   Future<void> _loadData() async {
     final user = _authProvider.currentUser;
     if (user != null) {
       await _projectProvider.loadProjects(user.id);
+      final projectIds = _projectProvider.projects
+          .map((p) => p.id)
+          .toList();
+      await _taskProvider.loadAllTasks(projectIds);
     }
   }
 
@@ -53,9 +66,9 @@ class _HomeScreenState extends State<HomeScreen> {
     await _authProvider.logout();
     if (!mounted) return;
     Navigator.pushAndRemoveUntil(
-    context,
-    MaterialPageRoute(builder: (_) => const LoginScreen()),
-    (route) => false,
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+          (route) => false,
     );
   }
 
@@ -77,9 +90,20 @@ class _HomeScreenState extends State<HomeScreen> {
       body: IndexedStack(
         index: _currentIndex,
         children: [
-          DashboardTab(authProvider: _authProvider, projectProvider: _projectProvider, taskProvider: _taskProvider),
-          ProjectsTab(authProvider: _authProvider, projectProvider: _projectProvider),
-          TasksTab(projectProvider: _projectProvider, taskProvider: _taskProvider),
+          DashboardTab(
+            authProvider: _authProvider,
+            projectProvider: _projectProvider,
+            taskProvider: _taskProvider,
+          ),
+          ProjectsTab(
+            authProvider: _authProvider,
+            projectProvider: _projectProvider,
+            taskProvider: _taskProvider,
+          ),
+          TasksTab(
+            projectProvider: _projectProvider,
+            taskProvider: _taskProvider,
+          ),
           ProfileTab(
             authProvider: _authProvider,
             projectProvider: _projectProvider,
@@ -94,10 +118,14 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedItemColor: AppColors.primary,
         unselectedItemColor: Colors.grey,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Dashboard'),
-          BottomNavigationBarItem(icon: Icon(Icons.folder), label: 'Projets'),
-          BottomNavigationBarItem(icon: Icon(Icons.task), label: 'Tâches'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.dashboard), label: 'Dashboard'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.folder), label: 'Projets'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.task), label: 'Tâches'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.person), label: 'Profil'),
         ],
       ),
       floatingActionButton: _currentIndex == 0 || _currentIndex == 1
@@ -151,27 +179,65 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text(user?.name ?? 'Utilisateur',
-                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                    Text(user?.email ?? '',
-                        style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                    Text(
+                      user?.name ?? 'Utilisateur',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      user?.email ?? '',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                      ),
+                    ),
                   ],
                 );
               },
             ),
           ),
-          ListTile(leading: const Icon(Icons.dashboard), title: const Text('Dashboard'),
-              onTap: () { setState(() => _currentIndex = 0); Navigator.pop(context); }),
-          ListTile(leading: const Icon(Icons.folder), title: const Text('Projets'),
-              onTap: () { setState(() => _currentIndex = 1); Navigator.pop(context); }),
-          ListTile(leading: const Icon(Icons.task), title: const Text('Tâches'),
-              onTap: () { setState(() => _currentIndex = 2); Navigator.pop(context); }),
-          ListTile(leading: const Icon(Icons.person), title: const Text('Profil'),
-              onTap: () { setState(() => _currentIndex = 3); Navigator.pop(context); }),
+          ListTile(
+            leading: const Icon(Icons.dashboard),
+            title: const Text('Dashboard'),
+            onTap: () {
+              setState(() => _currentIndex = 0);
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.folder),
+            title: const Text('Projets'),
+            onTap: () {
+              setState(() => _currentIndex = 1);
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.task),
+            title: const Text('Tâches'),
+            onTap: () {
+              setState(() => _currentIndex = 2);
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.person),
+            title: const Text('Profil'),
+            onTap: () {
+              setState(() => _currentIndex = 3);
+              Navigator.pop(context);
+            },
+          ),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.red),
-            title: const Text('Déconnexion', style: TextStyle(color: Colors.red)),
+            title: const Text(
+              'Déconnexion',
+              style: TextStyle(color: Colors.red),
+            ),
             onTap: _logout,
           ),
         ],
