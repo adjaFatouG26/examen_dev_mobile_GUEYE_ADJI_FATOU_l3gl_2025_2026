@@ -64,7 +64,22 @@ class TaskProvider extends ChangeNotifier {
     _tasks = StorageService.instance.getTasks(projectId);
     _isLoading = false;
     notifyListeners();
+    final TaskProvider taskProvider;
+
   }
+
+  Future<void> loadAllTasks(List<String> projectIds) async {
+    _isLoading = true;
+    notifyListeners();
+    _tasks = [];
+    for (final projectId in projectIds) {
+      final tasks = StorageService.instance.getTasks(projectId);
+      _tasks.addAll(tasks);
+    }
+    _isLoading = false;
+    notifyListeners();
+  }
+
 
 // Créer une tâche
   Future<void> createTask(Task task) async {
