@@ -4,8 +4,11 @@ import 'package:sunu_task/models/Task.dart';
 import 'package:sunu_task/providers/task_provider.dart';
 import 'package:sunu_task/screens/tasks/task_form_screen.dart';
 import 'package:sunu_task/providers/auth_provider.dart';
+import 'package:sunu_task/models/Comment.dart';
+import 'package:sunu_task/providers/comment_provider.dart';
+import 'package:sunu_task/widgets/cards/comment_card.dart';
 
-class TaskDetailScreen extends StatelessWidget {
+class TaskDetailScreen extends StatefulWidget {
   final Task task;
   final TaskProvider taskProvider;
   final AuthProvider authProvider;
@@ -16,6 +19,31 @@ class TaskDetailScreen extends StatelessWidget {
     required this.taskProvider,
     required this.authProvider,
   });
+
+  @override
+  State<TaskDetailScreen> createState() => _TaskDetailScreenState();
+}
+
+class _TaskDetailScreenState extends State<TaskDetailScreen> {
+
+  // Provider commentaires local
+  final _commentProvider = CommentProvider();
+
+  // Controller champ commentaire
+  final _commentController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Charger les commentaires de la tâche dés l'ouverture de l'ecran
+    _commentProvider.loadComments(widget.task.id);
+  }
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
+  }
 
   // Couleur selon le statut
   Color _getStatusColor(TaskStatus status) {
@@ -89,17 +117,38 @@ class TaskDetailScreen extends StatelessWidget {
     );
 
     if (confirm == true) {
-      await taskProvider.deleteTask(task.id);
+      await widget.taskProvider.deleteTask(widget.task.id);
       if (!context.mounted) return;
       Navigator.pop(context);
     }
+  }
+
+  // Ajouter un commentaire
+  Future<void> _addComment() async {
+    if (_commentController.text.trim().isEmpty) return;
+    final user = widget.authProvider.currentUser;
+    if (user == null) return;
+    final comment = Comment(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      taskId: widget.task.id,
+      userId: user.id,
+      userName: user.name,
+      content: _commentController.text.trim(),
+    );
+    await _commentProvider.addComment(comment);
+    _commentController.clear();
+  }
+
+  // Supprimer un commentaire
+  Future<void> _deleteComment(Comment comment) async {
+    await _commentProvider.deleteComment(comment.id, widget.task.id);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(task.title),
+        title: Text(widget.task.title),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         // Actions : modifier et supprimer
@@ -111,10 +160,10 @@ class TaskDetailScreen extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (_) => TaskFormScreen(
-                    task: task,
-                    projectId: task.projectId,
-                    taskProvider: taskProvider,
-                    authProvider: authProvider,
+                    task: widget.task,
+                    projectId: widget.task.projectId,
+                    taskProvider: widget.taskProvider,
+                    authProvider: widget.authProvider,
                   ),
                 ),
               );
@@ -127,7 +176,7 @@ class TaskDetailScreen extends StatelessWidget {
         ],
       ),
       body: ListenableBuilder(
-        listenable: taskProvider,
+        listenable: widget.taskProvider,
         builder: (context, _) {
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -137,7 +186,7 @@ class TaskDetailScreen extends StatelessWidget {
 
                 // Titre
                 Text(
-                  task.title,
+                  widget.task.title,
                   style: const TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
@@ -147,10 +196,10 @@ class TaskDetailScreen extends StatelessWidget {
                 const SizedBox(height: 16),
 
                 // Description
-                if (task.description != null &&
-                    task.description!.isNotEmpty) ...[
+                if (widget.task.description != null &&
+                    widget.task.description!.isNotEmpty) ...[
                   Text(
-                    task.description!,
+                    widget.task.description!,
                     style: const TextStyle(
                       fontSize: 15,
                       color: AppColors.textSecondary,
@@ -175,7 +224,7 @@ class TaskDetailScreen extends StatelessWidget {
                 const SizedBox(height: 8),
                 Row(
                   children: TaskStatus.values.map((status) {
-                    final isSelected = task.status == status;
+                    final isSelected = widget.task.status == status;
                     final color = _getStatusColor(status);
                     return Expanded(
                       child: Padding(
@@ -184,12 +233,11 @@ class TaskDetailScreen extends StatelessWidget {
                           duration: const Duration(milliseconds: 200),
                           child: GestureDetector(
                             onTap: () async {
-                              await taskProvider.updateTaskStatus(
-                                  task.id, status);
+                              await widget.taskProvider.updateTaskStatus(
+                                  widget.task.id, status);
                             },
                             child: Container(
-                              padding:
-                              const EdgeInsets.symmetric(vertical: 10),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? color.withOpacity(0.15)
@@ -235,15 +283,16 @@ class TaskDetailScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: _getPriorityColor(task.priority).withOpacity(0.15),
+                    color: _getPriorityColor(widget.task.priority)
+                        .withOpacity(0.15),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                        color: _getPriorityColor(task.priority)),
+                        color: _getPriorityColor(widget.task.priority)),
                   ),
                   child: Text(
-                    _getPriorityText(task.priority),
+                    _getPriorityText(widget.task.priority),
                     style: TextStyle(
-                      color: _getPriorityColor(task.priority),
+                      color: _getPriorityColor(widget.task.priority),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -251,7 +300,7 @@ class TaskDetailScreen extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 // Date d'échéance
-                if (task.dueDate != null) ...[
+                if (widget.task.dueDate != null) ...[
                   const Text(
                     "Date d'échéance",
                     style: TextStyle(
@@ -267,7 +316,7 @@ class TaskDetailScreen extends StatelessWidget {
                           color: AppColors.textSecondary, size: 18),
                       const SizedBox(width: 8),
                       Text(
-                        '${task.dueDate!.day}/${task.dueDate!.month}/${task.dueDate!.year}',
+                        '${widget.task.dueDate!.day}/${widget.task.dueDate!.month}/${widget.task.dueDate!.year}',
                         style: const TextStyle(
                           fontSize: 15,
                           color: AppColors.textSecondary,
@@ -276,6 +325,79 @@ class TaskDetailScreen extends StatelessWidget {
                     ],
                   ),
                 ],
+
+                const SizedBox(height: 24),
+                const Divider(),
+                const SizedBox(height: 16),
+
+                // Section commentaires
+                const Text(
+                  'Commentaires',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Champ ajout commentaire
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _commentController,
+                        decoration: InputDecoration(
+                          hintText: 'Ajouter un commentaire...',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                        ),
+                        maxLines: null,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      onPressed: _addComment,
+                      icon: const Icon(Icons.send),
+                      color: AppColors.primary,
+                      style: IconButton.styleFrom(
+                        backgroundColor: AppColors.primary.withOpacity(0.1),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                // Liste commentaires
+                ListenableBuilder(
+                  listenable: _commentProvider,
+                  builder: (context, _) {
+                    final comments = _commentProvider.comments;
+                    if (comments.isEmpty) {
+                      return Center(
+                        child: Text(
+                          'Aucun commentaire',
+                          style: TextStyle(color: AppColors.textSecondary),
+                        ),
+                      );
+                    }
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: comments.length,
+                      itemBuilder: (context, index) {
+                        return CommentCard(
+                          comment: comments[index],
+                          onDelete: () => _deleteComment(comments[index]),
+                        );
+                      },
+                    );
+                  },
+                ),
+                const SizedBox(height: 80),
               ],
             ),
           );
